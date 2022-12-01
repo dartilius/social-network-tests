@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}
+  Последние обновления на сайте
+{% endblock %}
+{% block content %}
+<!-- класс py-5 создает отступы сверху и снизу блока -->
+<div class="container py-5">
+  <h1>Последние обновления на сайте</h1>
+  {% for post in page_obj %}
+    <ul>
+      {% include 'includes/post.html' %}
+    </ul>
+    <ul>
+    {% if post.group %}
+      <a href="{% url 'posts:group_posts' post.group.slug %}">все записи группы</a>
+    {% endif %}
+    </ul>
+    <ul>
+      <a href="{% url 'posts:profile' post.author %}">
+          все посты пользователя
+      </a>
+    </ul>
+    <ul>
+      <a href="{% url 'posts:post_detail' post.pk %}">подробная информация </a>
+    </ul>
+    {% if not forloop.last %}<hr>{% endif %}
+    <!-- под последним постом нет линии -->
+  {% endfor %}
+  {% include 'posts/includes/paginator.html' %}
+</div>
+{% endblock %}

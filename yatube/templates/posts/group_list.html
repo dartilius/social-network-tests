@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}
+  Записи группы {{ group.slug }}
+{% endblock %}
+{% block content %}
+  <!-- класс py-5 создает отступы сверху и снизу блока -->
+  <div class="container py-5">
+    <h1>{{ group.title }}</h1>
+    <p>{{ group.description }}</p>
+    {% for post in page_obj %}
+      <ul>
+        {% include 'includes/post.html' %}
+      </ul>
+      <ul>
+        <a href="{% url 'posts:profile' post.author %}">
+          все посты пользователя
+        </a>
+      </ul>
+      <ul>
+        <a href="{% url 'posts:post_detail' post.pk %}">подробная информация</a>
+      </ul>
+      {% if not forloop.last %}<hr>{% endif %}
+    {% endfor %}
+    {% include 'posts/includes/paginator.html' %}
+  </div>
+{% endblock %}
