@@ -120,7 +120,7 @@ class ViewsTests(TestCase):
             first_object = response.context['posts'][0]
             self.assertEqual(
                 first_object.text,
-                'Тестовый пост',
+                'Текст поста 15',
                 f'{view} отображает пост с неправильным текстом.'
             )
             self.assertEqual(
