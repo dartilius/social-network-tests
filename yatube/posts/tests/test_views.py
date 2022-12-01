@@ -35,7 +35,6 @@ class ViewsTests(TestCase):
                 group=cls.group
             )
 
-
     def setUp(self):
         """Метод с фикстурами."""
         # Устанавливаем данные для тестирования

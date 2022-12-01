@@ -128,7 +128,8 @@ class StaticURLTests(TestCase):
         )
 
     def test_guest_create_post(self):
-        """Проверка переадресации co страницы создания поста для гостя на авторизацию."""
+        """Проверка переадресации co страницы
+        создания поста для гостя на авторизацию."""
         resource = self.guest_client.get('/create/')
         self.assertRedirects(resource, '/auth/login/?next=/create/')
 

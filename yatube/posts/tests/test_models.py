@@ -70,4 +70,4 @@ class PostModelTest(TestCase):
                     expected_value,
                     f'Поле {field} модели Post имеет '
                     f'некорректный verbose_name.'
-                   )
+                )
