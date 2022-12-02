@@ -1,7 +1,3 @@
-import shutil
-import tempfile
-
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -10,10 +6,8 @@ from ..forms import PostForm
 from ..models import Post, Group
 
 User = get_user_model()
-TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
 
-@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class FormsTests(TestCase):
     """Класс тестирования форм."""
 
@@ -27,7 +21,6 @@ class FormsTests(TestCase):
             slug='Тестовый слаг',
             description='Тестовое описание',
         )
-        cls.form = PostForm()
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый пост',
@@ -44,7 +37,6 @@ class FormsTests(TestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def test_create_form(self):
         """Проверяем что записи создаются корректно."""

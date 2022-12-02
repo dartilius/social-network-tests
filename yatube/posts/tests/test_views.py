@@ -3,6 +3,7 @@ from django import forms
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from ..forms import PostForm
 from ..models import Post, Group
 
 User = get_user_model()
@@ -34,6 +35,32 @@ class ViewsTests(TestCase):
                 text=f'Текст поста {i + 1}',
                 group=cls.group
             )
+        cls.index_url = reverse('posts:index')
+        cls.group_url = reverse(
+            'posts:group_posts',
+            kwargs={'slug': ViewsTests.group.slug}
+        )
+        cls.profile_url = reverse(
+            'posts:profile',
+            kwargs={'username': ViewsTests.user.username}
+        )
+        cls.post_detail_url = reverse(
+            'posts:post_detail',
+            kwargs={'post_id': ViewsTests.post.pk}
+        )
+        cls.pots_create_url = reverse('posts:post_create')
+        cls.post_edit_url = reverse(
+            'posts:post_edit',
+            kwargs={'post_id': ViewsTests.post.pk}
+        )
+        cls.urls_templates = {
+            ViewsTests.post_edit_url: 'posts/create_post.html',
+            ViewsTests.pots_create_url: 'posts/create_post.html',
+            ViewsTests.post_detail_url: 'posts/post_detail.html',
+            ViewsTests.profile_url: 'posts/profile.html',
+            ViewsTests.group_url: 'posts/group_list.html',
+            ViewsTests.index_url: 'posts/index.html'
+        }
 
     def setUp(self):
         """Метод с фикстурами."""
@@ -50,44 +77,21 @@ class ViewsTests(TestCase):
         self.author = Client()
         self.author.force_login(ViewsTests.user)
         # соотношение view к шаблону
-        self.views_tempaltes = {
-            'posts:index': 'posts/index.html',
-            'posts:group_posts': 'posts/group_list.html',
-            'posts:profile': 'posts/profile.html',
-            'posts:post_detail': 'posts/post_detail.html',
-            'posts:post_create': 'posts/create_post.html',
-            'posts:post_edit': 'posts/create_post.html'
-        }
-        # аргументы принимаемые view функцией
-        self.views_kwargs = {
-            'posts:index': '',
-            'posts:group_posts': {'slug': ViewsTests.group.slug},
-            'posts:profile': {'username': ViewsTests.user.username},
-            'posts:post_detail': {'post_id': ViewsTests.post.pk},
-            'posts:post_create': '',
-            'posts:post_edit': {'post_id': ViewsTests.post.pk},
-        }
 
     def test_views_uses_correct_templates(self):
-        """Проверяем что view функции используют нужный шаблон."""
-        for view, template in self.views_tempaltes.items():
-            with self.subTest(field=view):
-                response = self.author.get(
-                    reverse(view, kwargs=self.views_kwargs[view])
-                )
-                self.assertTemplateUsed(
-                    response,
-                    template,
-                    f'{view} использует несоответствующий шаблон.'
-                )
+        for url, template in ViewsTests.urls_templates.items():
+            response = self.author.get(url)
+            self.assertTemplateUsed(response, template)
 
     def test_first_page_paginator(self):
         """Проверяем что на первой странице отображается 10 постов."""
-        views = ('posts:index', 'posts:group_posts', 'posts:profile')
+        views = (
+            ViewsTests.index_url,
+            ViewsTests.group_url,
+            ViewsTests.profile_url
+        )
         for view in views:
-            response = self.author.get(
-                reverse(view, kwargs=self.views_kwargs[view])
-            )
+            response = self.author.get(view)
             # Проверка: количество постов на первой странице равно 10.
             self.assertEqual(
                 len(response.context['page_obj']),
@@ -98,11 +102,13 @@ class ViewsTests(TestCase):
 
     def test_second_page_paginator(self):
         """Проверяем пагинатор на второй странице."""
-        views = ('posts:index', 'posts:group_posts', 'posts:profile')
+        views = (
+            ViewsTests.index_url,
+            ViewsTests.group_url,
+            ViewsTests.profile_url
+        )
         for view in views:
-            response = self.author.get(
-                reverse(view, kwargs=self.views_kwargs[view]) + '?page=2'
-            )
+            response = self.author.get(view + '?page=2')
             self.assertEqual(
                 len(response.context['page_obj']),
                 REMAINS,
@@ -112,11 +118,13 @@ class ViewsTests(TestCase):
 
     def test_context_pages(self):
         """Проверяем контексты страниц index, group, profile."""
-        views = ('posts:index', 'posts:group_posts', 'posts:profile')
+        views = (
+            ViewsTests.index_url,
+            ViewsTests.group_url,
+            ViewsTests.profile_url
+        )
         for view in views:
-            response = self.author.get(
-                reverse(view, kwargs=self.views_kwargs[view])
-            )
+            response = self.author.get(view)
             first_object = response.context['posts'][0]
             self.assertEqual(
                 first_object.text,
@@ -136,12 +144,7 @@ class ViewsTests(TestCase):
 
     def test_post_detail_context(self):
         """Проверка контекста страницы поста."""
-        response = self.author.get(
-            reverse(
-                'posts:post_detail',
-                kwargs={'post_id': ViewsTests.post.pk}
-            )
-        )
+        response = self.author.get(ViewsTests.post_detail_url)
         self.assertEqual(
             response.context['post'].text,
             'Тестовый пост',
@@ -160,29 +163,25 @@ class ViewsTests(TestCase):
 
     def test_create_post_context(self):
         """Проверка контекста страницы создания поста."""
-        response = self.author.get(reverse('posts:post_create'))
+        response = self.author.get(ViewsTests.pots_create_url)
         form_fields = {
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
         }
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
+        self.assertIsInstance(response.context.get('form'), PostForm)
 
     def test_edit_post_context(self):
         """Проверка контекста страницы редактирования поста."""
-        response = self.author.get(
-            reverse('posts:post_edit', kwargs={'post_id': ViewsTests.post.pk})
-        )
+        response = self.author.get(ViewsTests.post_edit_url)
         form_fields = {
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
         }
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
+        self.assertIsInstance(response.context.get('form'), PostForm)
+        self.assertTrue(
+            response.context['is_edit'],
+            'View функция передала направильный контекст is_edit'
+        )
 
     def test_home_page_after_create_new_post(self):
         """Проверяем появился ли пост на главной странице."""
@@ -191,7 +190,7 @@ class ViewsTests(TestCase):
             text='Это самый новый пост',
             group=ViewsTests.group
         )
-        response = self.authorized_client.get(reverse('posts:index'))
+        response = self.authorized_client.get(ViewsTests.index_url)
         self.assertEqual(response.context['posts'][0], last_post)
 
     def test_profile_page_after_create_new_post(self):
@@ -201,12 +200,7 @@ class ViewsTests(TestCase):
             text='Это самый новый пост',
             group=ViewsTests.group
         )
-        response = self.authorized_client.get(
-            reverse(
-                'posts:profile',
-                kwargs={'username': ViewsTests.user.username}
-            )
-        )
+        response = self.authorized_client.get(ViewsTests.profile_url)
         self.assertEqual(response.context['posts'][0], last_post)
 
     def test_group_page_after_create_new_post(self):
@@ -216,10 +210,5 @@ class ViewsTests(TestCase):
             text='Это самый новый пост',
             group=ViewsTests.group
         )
-        response = self.authorized_client.get(
-            reverse(
-                'posts:group_posts',
-                kwargs={'slug': ViewsTests.group.slug}
-            )
-        )
+        response = self.authorized_client.get(ViewsTests.group_url)
         self.assertEqual(response.context['posts'][0], last_post)

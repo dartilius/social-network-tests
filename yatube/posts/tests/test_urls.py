@@ -43,49 +43,21 @@ class StaticURLTests(TestCase):
         self.author = Client()
         self.author.force_login(StaticURLTests.user)
 
-    def test_homepage(self):
-        """Проверка главной страницы."""
-        # Отправляем запрос через client,
-        # созданный в setUp()
-        response = self.guest_client.get('/')
-        self.assertEqual(
-            response.status_code,
-            200,
-            'Домашняя страница отдает неправильный статус код.'
+    def test_pages(self):
+        """Проверка доступности страниц."""
+        pages = (
+            '/',
+            f'/group/{StaticURLTests.group.slug}/',
+            f'/posts/{StaticURLTests.post.pk}/',
+            f'/profile/{StaticURLTests.user.username}/',
         )
-
-    def test_group_page(self):
-        """Проверка страницы группы."""
-        response = self.guest_client.get(
-            f'/group/{StaticURLTests.group.slug}/'
-        )
-        self.assertEqual(
-            response.status_code,
-            200,
-            'Страница граппы отдает неправильны статус код.'
-        )
-
-    def test_profile_page(self):
-        """Проверка страницы профиля."""
-        response = self.guest_client.get(
-            f'/profile/{StaticURLTests.user.username}/'
-        )
-        self.assertEqual(
-            response.status_code,
-            200,
-            'Страница профиля отдает неправильный статус код.'
-        )
-
-    def test_post_page(self):
-        """Проверка страницы поста."""
-        response = self.guest_client.get(
-            f'/posts/{StaticURLTests.post.pk}/'
-        )
-        self.assertEqual(
-            response.status_code,
-            200,
-            'Страница поста отдает неправильный статус код.'
-        )
+        for page in pages:
+            response = self.guest_client.get(page)
+            self.assertEqual(
+                response.status_code,
+                200,
+                f'Cтраница {page} отдает неправильный статус код.'
+            )
 
     def test_post_edit_for_author(self):
         """Проверка доступности редактирования поста для автора."""

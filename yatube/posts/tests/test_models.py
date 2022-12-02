@@ -28,17 +28,7 @@ class PostModelTest(TestCase):
             text='Текст длинна которого больше 15 символов'
         )
 
-    def test_models_have_correct_object_names_short(self):
-        """Проверяем, что у моделей с текстом
-        короче 15 символов корректно работает __str__."""
-        self.assertEqual(
-            str(PostModelTest.post),
-            PostModelTest.post.text[:15],
-            'В модели Post неправильно работает метод __str__'
-            'при длинне текста меньше 15 символов.'
-        )
-
-    def test_models_have_correct_object_names_long(self):
+    def test_models_have_correct_object_names(self):
         """Тест метода __str__ в модели Post с длинным текстом."""
         self.assertEqual(
             str(PostModelTest.post_2),
