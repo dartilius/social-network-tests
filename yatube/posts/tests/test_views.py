@@ -164,19 +164,11 @@ class ViewsTests(TestCase):
     def test_create_post_context(self):
         """Проверка контекста страницы создания поста."""
         response = self.author.get(ViewsTests.pots_create_url)
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-        }
         self.assertIsInstance(response.context.get('form'), PostForm)
 
     def test_edit_post_context(self):
         """Проверка контекста страницы редактирования поста."""
         response = self.author.get(ViewsTests.post_edit_url)
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-        }
         self.assertIsInstance(response.context.get('form'), PostForm)
         self.assertTrue(
             response.context['is_edit'],
