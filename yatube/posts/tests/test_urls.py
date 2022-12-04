@@ -59,6 +59,24 @@ class StaticURLTests(TestCase):
                 f'Cтраница {page} отдает неправильный статус код.'
             )
 
+    def test_page_templates(self):
+        """Проверяем что страницы с правильными шаблонами."""
+        pages = {
+            '/': 'posts/index.html',
+            f'/group/{StaticURLTests.group.slug}/': 'posts/group_list.html',
+            f'/posts/{StaticURLTests.post.pk}/': 'posts/post_detail.html',
+            f'/profile/{StaticURLTests.user.username}/': 'posts/profile.html',
+            f'/posts/{StaticURLTests.post.pk}/edit/': 'posts/create_post.html',
+            '/create/': 'posts/create_post.html'
+        }
+        for page, template in pages.items():
+            response = self.author.get(page)
+            self.assertTemplateUsed(
+                response,
+                template,
+                f'{page} использует неправильныый шаблон'
+            )
+
     def test_post_edit_for_author(self):
         """Проверка доступности редактирования поста для автора."""
         response = self.author.get(
